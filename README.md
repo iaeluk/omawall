@@ -54,6 +54,25 @@ omarchy restart shell
 omarchy-shell omawall status
 ```
 
+## Remoção
+
+```bash
+# 1. widget fora da barra
+omarchy plugin disable iaeluk.omawall
+
+# 2. motor fora do shell: remova { "id": "iaeluk.omawall" } de plugins[] em ~/.config/omarchy/shell.json
+
+# 3. recarregar e limpar (opcional: apaga config, estado e o symlink do CLI)
+omarchy restart shell
+rm -f ~/.config/omarchy/omawall.json ~/.local/state/omarchy/omawall-state.json ~/.local/bin/omawallctl
+```
+
+## Dependências externas
+
+Só `curl` (para o Bing do dia; já vem no Omarchy). O resto usa os
+próprios CLIs do shell (`omarchy-shell`, `omarchy-theme-bg-set`,
+`omarchy-notification-send`) e `hyprctl` para detectar fullscreen.
+
 ## Comandos
 
 Ações/consultas (IPC, sem argumentos):
