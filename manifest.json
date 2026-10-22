@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "iaeluk.omawall",
+  "name": "omaWall",
+  "version": "0.2.0",
+  "author": "iaeluk",
+  "license": "MIT",
+  "description": "Slideshow de wallpapers estilo Az Wallpaper para Omarchy: pasta própria, intervalo configurável, ordem aleatória/A-Z/recentes, pausa (manual e em fullscreen), Bing do dia e widget na barra com anterior/próximo.",
+  "kinds": [
+    "service",
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "service": "Service.qml",
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "omaWall",
+    "description": "Controles do slideshow de wallpapers (anterior, pausar, próximo, pasta)",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "schema": [
+      {
+        "key": "showCounter",
+        "type": "boolean",
+        "label": "Mostrar contador",
+        "description": "Exibe índice/total (ex: 3/42) ao lado do ícone",
+        "defaultValue": false
+      },
+      {
+        "key": "showFilename",
+        "type": "boolean",
+        "label": "Mostrar nome do arquivo",
+        "description": "Exibe o nome do wallpaper atual na barra",
+        "defaultValue": false
+      }
+    ]
+  }
+}

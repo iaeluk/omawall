@@ -1,0 +1,113 @@
+#!/bin/bash
+# omawallctl — controle do slideshow omaWall pelo terminal.
+# Leituras e ações simples vão por IPC; ajustes vão direto ao
+# ~/.config/omarchy/omawall.json, que o serviço observa e aplica na hora.
+# (O `qs ipc` 0.3.1 aqui não resolve funções COM argumentos.)
+set -uo pipefail
+
+CFG="$HOME/.config/omarchy/omawall.json"
+
+usage() {
+  cat <<EOF
+Uso: omawallctl <comando> [args]
+
+Leitura/ações:
+  status              JSON com estado atual
+  next | prev         anterior / próximo wallpaper
+  toggle              pausar / retomar
+  pause | resume      pausar / retomar (explícito)
+  refresh             revarrer a pasta agora
+  get <chave>         mostra um valor da config
+  open                abre a pasta do slideshow
+
+Ajustes (aplicados na hora):
+  interval <seg>      5..604800 (ex: 300 = 5min, 86400 = 24h, 259200 = 72h)
+  order <nome>        random | az | za | newest | oldest
+  mode <nome>         custom (só pasta) | hybrid (pasta + tema)
+  directory <pasta>   pasta do slideshow
+  subfolders <on|off> incluir subpastas
+  reshuffle <on|off>  reembaralhar ao concluir (modo random)
+  fullscreen <on|off> pausar quando houver janela fullscreen
+  notify <on|off>     notificações de troca/pausa
+  bing <on|off>       baixar o wallpaper do dia do Bing (a cada 12h)
+
+Exemplos:
+  omawallctl interval 300
+  omawallctl order az
+  omawallctl directory ~/Pictures/wallpapers
+EOF
+}
+
+to_bool() {
+  case ${1,,} in
+    on|true|1|yes|sim) echo "true" ;;
+    off|false|0|no|não|nao) echo "false" ;;
+    *) echo "INVALID" ;;
+  esac
+}
+
+set_key() {
+  python3 - "$CFG" "$1" "$2" <<'EOF'
+import json, sys
+path, key, raw = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    with open(path) as f:
+        cfg = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    cfg = {}
+INTS = {"intervalSeconds", "bingCount"}
+BOOLS = {"reshuffleOnComplete", "paused", "pauseOnFullscreen", "notifications",
+         "includeSubfolders", "bingEnabled", "bingInclude"}
+if key in INTS:
+    cfg[key] = int(raw)
+elif key in BOOLS:
+    cfg[key] = raw == "true"
+else:
+    cfg[key] = raw
+with open(path, "w") as f:
+    json.dump(cfg, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+print("%s=%s" % (key, cfg[key]))
+EOF
+}
+
+cmd=${1-}
+case $cmd in
+  status) omarchy-shell omawall status ;;
+  next) omarchy-shell omawall next ;;
+  prev | previous) omarchy-shell omawall previous ;;
+  toggle) omarchy-shell omawall toggle ;;
+  pause) omarchy-shell omawall pause ;;
+  resume) omarchy-shell omawall resume ;;
+  refresh) omarchy-shell omawall refresh ;;
+  open) omarchy-shell omawall status >/dev/null; python3 -c "import json; print(json.load(open('$CFG'))['directory'])" | xargs -d '\n' xdg-open ;;
+  get)
+    [[ $# -ge 2 ]] || { usage >&2; exit 1; }
+    python3 -c "import json,sys; print(json.load(open('$CFG')).get(sys.argv[1]))" "$2"
+    ;;
+  interval)
+    [[ $# -ge 2 && $2 =~ ^[0-9]+$ ]] && (( $2 >= 5 && $2 <= 604800 )) || { echo "interval: use 5..604800 segundos (até 7 dias)" >&2; exit 1; }
+    set_key intervalSeconds "$2"
+    ;;
+  order)
+    [[ $# -ge 2 ]] || { usage >&2; exit 1; }
+    case $2 in random|az|za|newest|oldest) set_key sortOrder "$2" ;; *) echo "order: random|az|za|newest|oldest" >&2; exit 1 ;; esac
+    ;;
+  mode)
+    [[ $# -ge 2 ]] || { usage >&2; exit 1; }
+    case $2 in custom|hybrid) set_key mode "$2" ;; *) echo "mode: custom|hybrid" >&2; exit 1 ;; esac
+    ;;
+  directory)
+    [[ $# -ge 2 ]] || { usage >&2; exit 1; }
+    dir=$(realpath -m "$2")
+    [[ -d $dir ]] || { echo "directory: pasta inexistente: $2" >&2; exit 1; }
+    set_key directory "$dir"
+    ;;
+  subfolders) v=$(to_bool "${2-}"); [[ $v != INVALID ]] || { echo "use on|off" >&2; exit 1; }; set_key includeSubfolders "$v" ;;
+  reshuffle) v=$(to_bool "${2-}"); [[ $v != INVALID ]] || { echo "use on|off" >&2; exit 1; }; set_key reshuffleOnComplete "$v" ;;
+  fullscreen) v=$(to_bool "${2-}"); [[ $v != INVALID ]] || { echo "use on|off" >&2; exit 1; }; set_key pauseOnFullscreen "$v" ;;
+  notify) v=$(to_bool "${2-}"); [[ $v != INVALID ]] || { echo "use on|off" >&2; exit 1; }; set_key notifications "$v" ;;
+  bing) v=$(to_bool "${2-}"); [[ $v != INVALID ]] || { echo "use on|off" >&2; exit 1; }; set_key bingEnabled "$v" ;;
+  "" | -h | --help | help) usage ;;
+  *) echo "comando desconhecido: $cmd" >&2; usage >&2; exit 1 ;;
+esac
