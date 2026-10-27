@@ -91,6 +91,7 @@ PopupCard {
         width: parent.width
         maximumLineCount: 1
         elide: Text.ElideRight
+        textFormat: Text.PlainText
         text: card.svc && card.svc.currentFile !== "" ? Model.fileName(String(card.svc.currentFile)) : "nenhum wallpaper ainda"
         color: Color.foreground
         opacity: 0.7
@@ -276,6 +277,7 @@ PopupCard {
         width: parent.width
         maximumLineCount: 1
         elide: Text.ElideMiddle
+        textFormat: Text.PlainText
         text: card.svc ? String(card.svc.cfg("directory", "")) : ""
         color: Color.foreground
         opacity: 0.65

@@ -40,12 +40,7 @@ BarWidget {
       height: 12
       radius: 3
       color: "transparent"
-      border.color: {
-        if (!root.bar) return "#FFFFFF";
-        var c = root.bar.barForeground;
-        if (c.hslLightness > 0.7) return c;
-        return Qt.darker(c, 3.2);
-      }
+      border.color: button.active && button.useActiveColor ? button.activeColor : button.foreground
       border.width: 2
     }
     tooltipText: {

@@ -158,12 +158,11 @@ existe na seção Pasta).
 ## Components
 
 - `bar-icon`: quadrado vazado de 12px na barra (raio 3px) — borda de 2px
-  na cor do tema (`bar.barForeground`), escurecida quando o sampler da
-  barra entrega cinza (claro vira quase preto, nunca cinza lavado),
-  interior transparente. Sem emoji, sem glifo de fonte: forma geométrica
-  desenhada. Quando pausado, perde opacidade (45%); rodando, cheio.
-- `bar-icon` NUNCA usa hex fixo: o fallback `#FFFFFF` só vale antes do
-  `bar` existir.
+  na mesma cor dos ícones nativos (`foreground`, com cor de ativo quando
+  rodando), interior transparente. Sem emoji, sem glifo de fonte: forma
+  geométrica desenhada. Quando pausado, perde opacidade (45%); rodando, cheio.
+- `bar-icon` usa `button.foreground` / `button.activeColor`: nunca hex
+  fixo, sempre a mesma nuance dos ícones nativos.
 - `card-title` + chip de contador (`3/42`) em pílula cheia.
 - `section-label`: `label-sm` sobre `secondary`, sempre precedendo seu grupo.
 - `btn-transport` / `btn-transport-active`: 36px de altura, glifos
@@ -189,5 +188,7 @@ existe na seção Pasta).
 - NÃO FAÇA: introduzir segunda cor de destaque ou sombra própria.
 - NÃO FAÇA: hex fixo fora do acento e dos semáforos de status — todo o
   resto reage ao tema (é o que faz o claro funcionar).
+- NÃO FAÇA: renderizar string vinda do disco ou da config como rich text:
+  nome de arquivo e caminho de pasta usam `textFormat: Text.PlainText`.
 - NÃO FAÇA: texto corrido maior que 13px dentro do card.
 - NÃO FAÇA: presets ou alternâncias sem indicar o valor corrente.
